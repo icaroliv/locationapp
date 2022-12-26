@@ -13,7 +13,7 @@ MapboxGL.setAccessToken(
 );
 
 const Map: React.FC = () => {
-  const [coordinates, setCoordinates] = useState([-37.8, -10.7]);
+  const [coordinates, setCoordinates] = useState<Number[]>([]);
   const [data, setData] = useState<IData[]>([]);
   const [temperatura, setTemperatura] = useState<String>();
   const [umidade, setUmidade] = useState<String>();
@@ -21,47 +21,46 @@ const Map: React.FC = () => {
 
   useEffect(() => {
     load();
-  }, [data]);
+  }, []);
 
   const load = async () => {
     await axios.get('https://locationapi.vercel.app/list').then(result => {
       setData(result.data);
-      console.log(result.data)
       getLastElement();
-     // setLastCoordinates();
+      setLastCoordinates();
     });
   };
 
   const getLastElement = () => {
     setLastElement(data[data.length - 1]);
+    console.log(lastElement);
   };
 
   const setLastCoordinates = () => {
-    const array = new Array();
-  array.push(parseFloat(lastElement?.location.longitude || ""));
-  array.push(parseFloat(lastElement?.location.latitude || ""));
-
-  setCoordinates(array)
-    console.log(array)
-    //setCoordinates([Number(lastElement?.localizacao.latitude),Number(lastElement?.localizacao.longitude)])
-    
+    const result : number[] = [];
+    result.push(Number(lastElement?.location.longitude || ""));
+    result.push(Number(lastElement?.location.latitude || ""));
+    setCoordinates(result);
   };
 
   return (
     <Container>
-      <Card
-        temperatura={lastElement?.clima.temperatura || ''}
-        hora={lastElement?.hora || ""}
-        umidade={lastElement?.clima.umidade || ''}></Card>
-      <MapboxGL.MapView
-        styleURL={MapboxGL.StyleURL.Dark}
-        style={{
-          width: Dimensions.get('window').width,
-          height: Dimensions.get('window').height,
-        }}>
-        <PointAnnotation coordinate={coordinates}></PointAnnotation>
-      </MapboxGL.MapView>
-   
+      {coordinates.length != 0 ? (
+        <>
+          <Card
+            temperatura={lastElement?.clima.temperatura || ''}
+            hora={lastElement?.hora || ''}
+            umidade={lastElement?.clima.umidade || ''}></Card>
+          <MapboxGL.MapView
+            styleURL={MapboxGL.StyleURL.Dark}
+            style={{
+              width: Dimensions.get('window').width,
+              height: Dimensions.get('window').height,
+            }}>
+            <PointAnnotation coordinate={coordinates}></PointAnnotation>
+          </MapboxGL.MapView>
+        </>
+      ) : null}
     </Container>
   );
 };
